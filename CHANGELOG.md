@@ -1,5 +1,13 @@
 # The Hungering Portal Changelog
 
+## [1.5.0] - 2026-06-16
+
+### Changed
+- **Updated to Minecraft 26.2.** Bumped to Fabric Loader 0.19.3 and Fabric API 0.152.1+26.2
+  (Fabric Loom stays at 1.16.2 — 1.17.x requires Gradle 9.5, above the workspace's 9.4.0 wrapper).
+  Dependency bounds in `fabric.mod.json` raised to match (`minecraft ~26.2`, `fabricloader >=0.19.3`,
+  `fabric-api >=0.152.1`). No gameplay changes.
+
 ## [1.4.0] - 2026-06-09
 
 ### Changed
