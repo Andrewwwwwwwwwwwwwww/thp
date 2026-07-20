@@ -1,5 +1,36 @@
 # The Hungering Portal Changelog
 
+## [2.1.0] - 2026-07-20
+
+### Added
+- **A custom, multi-phase Ender Dragon fight.** After the portal ritual is complete and players
+  first enter the End, an overhauled dragon boss plays out in a custom arena: an aerial phase
+  (fireballs, meteors, TNT lines, lightning endermen), a shulker-summoning "Hyper Jean" phase
+  (lightning rings, homing missiles, a splitting dragon, teleports), a wave-based add fight, and
+  a healing-crystal finale. The vanilla dragon fight is fully suppressed; the surrounding vanilla
+  End island is cleared and replaced by the custom arena, generated on first entry while players
+  are held safely above it.
+- When the dragon dies, the **exit portal lights inside the arena's central fountain** (a sunken
+  portal pool around the dragon-egg pillar) and **full vanilla End gateways** are generated, so
+  players can return home and explore the outer End as usual.
+- **The dragon can be revived vanilla-style**: place 4 End Crystals on the obsidian pads around
+  the exit portal to respawn it and run the whole fight again (the portal goes dark during the
+  fight and relights on victory; the egg and gateways only appear on the first kill).
+
+### Changed
+- **Offerings updated**: the Recovery Compass is replaced by **16 Wither Roses** (throw in any
+  stacks — partial progress counts and is returned if the portal times out), and the Pigstep
+  Music Disc is replaced by a **Conduit**.
+- `/thp portalreq` now prints the requirements **in chat only**; the on-screen title sequence
+  plays only when a player jumps into a not-yet-opened portal.
+
+### Notes
+- The fight is **derived from [RogueCraft](https://modrinth.com/datapack/rogue-craft) by MonoCode**,
+  used under **CC-BY-SA-4.0** and adapted to run standalone (roguelite difficulty scaling, skillpoints,
+  and hub return removed). See `THIRD_PARTY_NOTICES.md`. That bundled data carries CC-BY-SA-4.0; the
+  mod's own code/assets remain under the project license.
+- Wave mobs use base vanilla stats (RogueCraft's run-based difficulty scaling does not apply here).
+
 ## [2.0.0] - 2026-06-27
 
 ### Changed

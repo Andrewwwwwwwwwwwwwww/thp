@@ -1,0 +1,1 @@
+execute store result storage roguecraft:master particles.particle_angle_current float 0.1 run scoreboard players get @s particle_angle_current

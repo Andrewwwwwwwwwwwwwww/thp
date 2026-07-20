@@ -1,0 +1,5 @@
+execute if score #roguecraft_master.ender_dragon dragon_phase matches 7 at @e[type=minecraft:marker,tag=summon_portal] run return run function custom_ender_dragon:p4/wave_2
+execute if score #roguecraft_master.ender_dragon dragon_phase matches 8 at @e[type=minecraft:marker,tag=summon_portal] run return run function custom_ender_dragon:p4/wave_3
+execute if score #roguecraft_master.ender_dragon dragon_phase matches 9 at @e[type=minecraft:marker,tag=summon_portal] run return run function custom_ender_dragon:p4/wave_4
+execute if score #roguecraft_master.ender_dragon dragon_phase matches 10 at @e[type=minecraft:marker,tag=summon_portal] run return run function custom_ender_dragon:p4/wave_5
+execute if score #roguecraft_master.ender_dragon dragon_phase matches 11 at @e[type=minecraft:marker,tag=summon_portal] run return run function custom_ender_dragon:p4t/main_1

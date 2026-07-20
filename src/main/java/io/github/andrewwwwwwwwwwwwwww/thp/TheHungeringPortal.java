@@ -40,7 +40,7 @@ public class TheHungeringPortal implements ModInitializer {
                     .then(Commands.literal("portalreq")
                         .executes(ctx -> {
                             if (ctx.getSource().getEntity() instanceof ServerPlayer player) {
-                                PortalActivation.showRequirements(player);
+                                PortalActivation.showRequirementsChat(player);
                                 return 1;
                             }
                             ctx.getSource().sendFailure(Component.literal("This command must be run by a player."));

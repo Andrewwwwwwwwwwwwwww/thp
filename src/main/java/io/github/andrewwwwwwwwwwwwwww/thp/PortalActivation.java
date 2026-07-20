@@ -45,6 +45,8 @@ public class PortalActivation {
 
     private static final Map<Item, String> ITEM_TO_ID = new LinkedHashMap<>();
     private static final Map<String, Item> ID_TO_ITEM = new HashMap<>();
+    /** How many of each offering must be thrown in. Absent = 1. */
+    private static final Map<Item, Integer> REQUIRED_COUNT = new HashMap<>();
     static {
         ITEM_TO_ID.put(Items.TRIDENT, "trident");
         ITEM_TO_ID.put(Items.NETHERITE_BLOCK, "netherite_block");
@@ -53,18 +55,25 @@ public class PortalActivation {
         ITEM_TO_ID.put(Items.TOTEM_OF_UNDYING, "totem_of_undying");
         ITEM_TO_ID.put(Items.BEACON, "beacon");
         ITEM_TO_ID.put(Items.MACE, "mace");
-        ITEM_TO_ID.put(Items.RECOVERY_COMPASS, "recovery_compass");
-        ITEM_TO_ID.put(Items.MUSIC_DISC_PIGSTEP, "music_disc_pigstep");
+        ITEM_TO_ID.put(Items.WITHER_ROSE, "wither_rose");
+        ITEM_TO_ID.put(Items.CONDUIT, "conduit");
         ITEM_TO_ID.put(Items.ZOMBIE_HEAD, "zombie_head");
         for (Map.Entry<Item, String> e : ITEM_TO_ID.entrySet()) {
             ID_TO_ITEM.put(e.getValue(), e.getKey());
         }
+        REQUIRED_COUNT.put(Items.WITHER_ROSE, 16);
     }
 
     public static final Set<Item> REQUIRED_ITEMS = ITEM_TO_ID.keySet();
 
+    private static int requiredCount(Item item) {
+        return REQUIRED_COUNT.getOrDefault(item, 1);
+    }
+
     private static boolean activated = false;
     private static final Set<Item> consumed = new LinkedHashSet<>();
+    /** Progress toward each offering's required count (for multi-count offerings like Wither Roses). */
+    private static final Map<Item, Integer> consumedCount = new LinkedHashMap<>();
     private static final Map<Item, UUID> consumedBy = new LinkedHashMap<>();
     private static final Set<UUID> participants = new LinkedHashSet<>();
     private static long lastConsumeTick = 0L;
@@ -95,6 +104,7 @@ public class PortalActivation {
         savePath = server.getWorldPath(LevelResource.ROOT).resolve("endbeast.json");
         activated = false;
         consumed.clear();
+        consumedCount.clear();
         consumedBy.clear();
         participants.clear();
         lastConsumeTick = 0L;
@@ -103,7 +113,10 @@ public class PortalActivation {
         lastMessageTick.clear();
         pendingChats.clear();
         pendingTitles.clear();
-        if (!Files.exists(savePath)) return;
+        if (!Files.exists(savePath)) {
+            setFightArmed(server, activated);
+            return;
+        }
         try {
             JsonObject json = JsonParser.parseString(Files.readString(savePath)).getAsJsonObject();
             if (json.has("activated")) activated = json.get("activated").getAsBoolean();
@@ -112,6 +125,13 @@ public class PortalActivation {
                 for (JsonElement e : list) {
                     Item item = ID_TO_ITEM.get(e.getAsString());
                     if (item != null) consumed.add(item);
+                }
+            }
+            if (json.has("consumedCount")) {
+                JsonObject counts = json.getAsJsonObject("consumedCount");
+                for (Map.Entry<String, JsonElement> e : counts.entrySet()) {
+                    Item item = ID_TO_ITEM.get(e.getKey());
+                    if (item != null) consumedCount.put(item, e.getValue().getAsInt());
                 }
             }
             if (json.has("consumedBy")) {
@@ -146,6 +166,23 @@ public class PortalActivation {
         } catch (Exception e) {
             LOGGER.error("Failed to load state", e);
         }
+        setFightArmed(server, activated);
+    }
+
+    /**
+     * Bridges the ritual state into the bundled End-fight datapack: the custom Ender Dragon fight
+     * only starts once {@code #thp portal_activated} is 1. Mirrors {@link #activated}. The objective
+     * is created by the datapack's {@code roguecraft:setup} (minecraft:load), which runs before this.
+     */
+    private static void setFightArmed(MinecraftServer server, boolean armed) {
+        if (server == null) return;
+        try {
+            server.getCommands().performPrefixedCommand(
+                server.createCommandSourceStack().withSuppressedOutput(),
+                "scoreboard players set #thp portal_activated " + (armed ? 1 : 0));
+        } catch (Exception e) {
+            LOGGER.error("Failed to sync End-fight armed state", e);
+        }
     }
 
     public static void save(MinecraftServer server) {
@@ -160,6 +197,13 @@ public class PortalActivation {
                 if (id != null) list.add(id);
             }
             json.add("consumed", list);
+
+            JsonObject counts = new JsonObject();
+            for (Map.Entry<Item, Integer> e : consumedCount.entrySet()) {
+                String id = ITEM_TO_ID.get(e.getKey());
+                if (id != null) counts.addProperty(id, e.getValue());
+            }
+            json.add("consumedCount", counts);
 
             JsonObject byMap = new JsonObject();
             for (Map.Entry<Item, UUID> e : consumedBy.entrySet()) {
@@ -191,15 +235,23 @@ public class PortalActivation {
 
     public static boolean tryConsume(ServerLevel level, ItemEntity itemEntity) {
         if (activated) return false;
-        Item item = itemEntity.getItem().getItem();
+        ItemStack stack = itemEntity.getItem();
+        Item item = stack.getItem();
         if (!REQUIRED_ITEMS.contains(item)) return false;
-        if (consumed.contains(item)) return false;
+        if (consumed.contains(item)) return false; // this offering is already fully satisfied
+
+        int reqCount = requiredCount(item);
+        int have = consumedCount.getOrDefault(item, 0);
+        int stillNeeded = reqCount - have;
+        if (stillNeeded <= 0) return false;
+
+        int take = Math.min(stack.getCount(), stillNeeded);
+        consumedCount.put(item, have + take);
 
         UUID throwerId = null;
         Entity owner = itemEntity.getOwner();
         if (owner != null) throwerId = owner.getUUID();
 
-        consumed.add(item);
         if (throwerId != null) {
             consumedBy.put(item, throwerId);
             participants.add(throwerId);
@@ -209,7 +261,17 @@ public class PortalActivation {
 
         addNearbyParticipants(level);
 
-        itemEntity.discard();
+        // Take only what the offering needs; leave any surplus floating in the portal.
+        if (stack.getCount() > take) {
+            stack.shrink(take);
+            itemEntity.setItem(stack);
+        } else {
+            itemEntity.discard();
+        }
+
+        if (have + take >= reqCount) {
+            consumed.add(item); // offering complete
+        }
 
         int required = getRequiredPlayers();
         if (consumed.containsAll(REQUIRED_ITEMS) && participants.size() >= required) {
@@ -305,6 +367,7 @@ public class PortalActivation {
         lastMessageTick.clear();
         pendingTitles.clear();
         lastPortalPos = null;
+        setFightArmed(level.getServer(), true);
         broadcastActivation(level);
     }
 
@@ -315,6 +378,7 @@ public class PortalActivation {
     public static void reset(MinecraftServer server) {
         activated = false;
         consumed.clear();
+        consumedCount.clear();
         consumedBy.clear();
         participants.clear();
         lastConsumeTick = 0L;
@@ -322,6 +386,7 @@ public class PortalActivation {
         lastMessageTick.clear();
         pendingTitles.clear();
         pendingChats.clear();
+        setFightArmed(server, false);
         save(server);
 
         Component title = Component.literal("The End Portal hungers once more")
@@ -369,23 +434,29 @@ public class PortalActivation {
 
     private static void returnItems(MinecraftServer server, ServerLevel level) {
         Set<UUID> notifiedPlayers = new HashSet<>();
-        for (Item item : consumed) {
+        // Return everything thrown in, including partial progress toward multi-count offerings.
+        for (Map.Entry<Item, Integer> e : consumedCount.entrySet()) {
+            Item item = e.getKey();
+            int remaining = e.getValue();
             UUID throwerId = consumedBy.get(item);
-            ItemStack stack = new ItemStack(item);
-
             ServerPlayer player = throwerId != null ? server.getPlayerList().getPlayer(throwerId) : null;
-            if (player != null) {
-                if (!player.getInventory().add(stack)) {
-                    player.drop(stack, false);
+            while (remaining > 0) {
+                int n = Math.min(remaining, 64);
+                remaining -= n;
+                ItemStack stack = new ItemStack(item, n);
+                if (player != null) {
+                    if (!player.getInventory().add(stack)) {
+                        player.drop(stack, false);
+                    }
+                    notifiedPlayers.add(throwerId);
+                } else if (lastPortalPos != null) {
+                    ItemEntity drop = new ItemEntity(level,
+                        lastPortalPos.getX() + 0.5,
+                        lastPortalPos.getY() + 1.0,
+                        lastPortalPos.getZ() + 0.5,
+                        stack);
+                    level.addFreshEntity(drop);
                 }
-                notifiedPlayers.add(throwerId);
-            } else if (lastPortalPos != null) {
-                ItemEntity drop = new ItemEntity(level,
-                    lastPortalPos.getX() + 0.5,
-                    lastPortalPos.getY() + 1.0,
-                    lastPortalPos.getZ() + 0.5,
-                    stack);
-                level.addFreshEntity(drop);
             }
         }
 
@@ -404,6 +475,7 @@ public class PortalActivation {
         }
 
         consumed.clear();
+        consumedCount.clear();
         consumedBy.clear();
         participants.clear();
         lastConsumeTick = 0L;
@@ -448,14 +520,11 @@ public class PortalActivation {
         }
     }
 
-    public static void showRequirements(ServerPlayer player) {
-        UUID uuid = player.getUUID();
-        pendingTitles.removeIf(pt -> pt.playerId().equals(uuid));
-        pendingChats.removeIf(pc -> !pc.broadcast() && pc.playerId().equals(uuid));
+    private static final Component REQ_HEADING =
+        Component.literal("Collect these items few").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD);
 
-        Component heading = Component.literal("Collect these items few")
-            .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD);
-        Component[] items = new Component[] {
+    private static Component[] requirementFlavor() {
+        return new Component[] {
             Component.literal("A Trident from the bubbling undead").withStyle(ChatFormatting.AQUA),
             Component.literal("A block of Nether & Gold forged steel").withStyle(ChatFormatting.DARK_PURPLE),
             Component.literal("An egg of a beast long past").withStyle(ChatFormatting.GREEN),
@@ -463,29 +532,25 @@ public class PortalActivation {
             Component.literal("A hand held savior").withStyle(ChatFormatting.WHITE),
             Component.literal("A Nether Star's gilded prison").withStyle(ChatFormatting.GOLD),
             Component.literal("A mace of crushing weight").withStyle(ChatFormatting.GRAY),
-            Component.literal("A compass for the fallen").withStyle(ChatFormatting.RED),
-            Component.literal("A disc of porcine percussion").withStyle(ChatFormatting.LIGHT_PURPLE),
+            Component.literal("Sixteen roses grown from the Wither's wake").withStyle(ChatFormatting.DARK_GRAY),
+            Component.literal("A ward of the drowned deep").withStyle(ChatFormatting.DARK_AQUA),
             Component.literal("and finally a skull from the restless dead").withStyle(ChatFormatting.DARK_GREEN)
         };
-        String[] itemNames = new String[] {
+    }
+
+    private static String[] requirementNames() {
+        return new String[] {
             "Trident", "Netherite Block", "Sniffer Egg", "Enchanted Golden Apple",
-            "Totem of Undying", "Beacon", "Mace", "Recovery Compass",
-            "Pigstep Music Disc", "Zombie Head"
+            "Totem of Undying", "Beacon", "Mace", "16 Wither Roses",
+            "Conduit", "Zombie Head"
         };
+    }
 
-        int t = 0;
-        scheduleTitle(player, heading, Component.empty(), 5, 40, 10, t);
-        t += 50;
-        int total = items.length;
-        for (int i = 0; i < items.length; i++) {
-            Component offeringTitle = Component.literal("Offering " + (i + 1) + " of " + total)
-                .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD);
-            scheduleTitle(player, offeringTitle, items[i], 5, 30, 5, t);
-            t += 35;
-        }
-
+    private static List<Component> requirementChatLines() {
+        Component[] items = requirementFlavor();
+        String[] itemNames = requirementNames();
         List<Component> chatLines = new ArrayList<>();
-        chatLines.add(heading);
+        chatLines.add(REQ_HEADING);
         for (int i = 0; i < items.length; i++) {
             chatLines.add(Component.literal("  ").append(items[i])
                 .append(Component.literal(" (" + itemNames[i] + ")").withStyle(ChatFormatting.WHITE)));
@@ -494,7 +559,36 @@ public class PortalActivation {
         String witnesses = required == 1 ? "witness" : "witnesses";
         chatLines.add(Component.literal(required + " " + witnesses + " required to activate the portal")
             .withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC));
-        scheduleChat(player, chatLines, t);
+        return chatLines;
+    }
+
+    /** The requirements in chat only — used by the /thp portalreq command. */
+    public static void showRequirementsChat(ServerPlayer player) {
+        UUID uuid = player.getUUID();
+        pendingChats.removeIf(pc -> !pc.broadcast() && pc.playerId().equals(uuid));
+        for (Component line : requirementChatLines()) {
+            player.sendSystemMessage(line);
+        }
+    }
+
+    /** On-screen titles then chat — used only when a player jumps into a not-yet-opened portal. */
+    public static void showRequirements(ServerPlayer player) {
+        UUID uuid = player.getUUID();
+        pendingTitles.removeIf(pt -> pt.playerId().equals(uuid));
+        pendingChats.removeIf(pc -> !pc.broadcast() && pc.playerId().equals(uuid));
+
+        Component[] items = requirementFlavor();
+        int t = 0;
+        scheduleTitle(player, REQ_HEADING, Component.empty(), 5, 40, 10, t);
+        t += 50;
+        int total = items.length;
+        for (int i = 0; i < items.length; i++) {
+            Component offeringTitle = Component.literal("Offering " + (i + 1) + " of " + total)
+                .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD);
+            scheduleTitle(player, offeringTitle, items[i], 5, 30, 5, t);
+            t += 35;
+        }
+        scheduleChat(player, requirementChatLines(), t);
     }
 
     private static void sendTitle(ServerPlayer player, Component title, Component subtitle, int fadeIn, int stay, int fadeOut) {

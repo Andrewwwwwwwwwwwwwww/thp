@@ -1,0 +1,2 @@
+execute if score @e[type=ender_dragon,limit=1] dragon_flight_timer matches 0 run return run function custom_ender_dragon:p3/attack_select
+execute at @e[type=minecraft:ender_dragon,limit=1] run summon minecraft:area_effect_cloud ~ ~ ~ {Tags:["auto_aim"],Duration:400,custom_particle:{type:"minecraft:block",block_state:"minecraft:air"}}

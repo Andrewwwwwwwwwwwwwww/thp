@@ -14,8 +14,8 @@ A Fabric mod that gates the End Portal behind a ritual: even when the frame is l
    - **A hand held savior** — Totem of Undying
    - **A Nether Star's gilded prison** — Beacon
    - **A mace of crushing weight** — Mace
-   - **A compass for the fallen** — Recovery Compass
-   - **A disc of porcine percussion** — Pigstep Music Disc
+   - **Sixteen roses grown from the Wither's wake** — 16 Wither Roses
+   - **A ward of the drowned deep** — Conduit
    - **A skull from the restless dead** — Zombie Head
 4. By default at least **3 players** must have participated (thrown an offering or stood within 16 blocks of the portal during an offering).
 5. If 60 seconds pass between offerings, the portal "loses patience" and returns all thrown items to whoever threw them.
@@ -26,7 +26,7 @@ A Fabric mod that gates the End Portal behind a ritual: even when the frame is l
 
 | Command | Permission | Description |
 | --- | --- | --- |
-| `/thp portalreq` | Anyone | Show the portal requirements on screen and in chat. |
+| `/thp portalreq` | Anyone | List the portal requirements in chat. |
 | `/thp setendplayercount <n>` | Op (2+) | Change the minimum participant count. Use `1` for singleplayer. |
 | `/thp reset` | Op (2+) | Re-lock the End Portal so the full ritual is required again. Clears the activated state and any in-progress offerings. |
 
@@ -38,6 +38,21 @@ A Fabric mod that gates the End Portal behind a ritual: even when the frame is l
 2. Drop the The Hungering Portal (`thp`) JAR into your `mods` folder.
 3. Start the server. State is saved in `<world>/endbeast.json`.
 
+## The End fight
+
+Once the portal is opened and players first enter the End, they face an overhauled,
+multi-phase Ender Dragon in a custom arena (aerial barrages, a shulker-summoning
+"Hyper Jean" phase, wave-based adds, and a healing-crystal finale). When the dragon
+falls, a normal End exit portal and End gateways appear so players can go home and
+explore the outer End as usual.
+
+This fight is **derived from [RogueCraft](https://modrinth.com/datapack/rogue-craft)
+by MonoCode**, used under **CC-BY-SA-4.0** and adapted to run standalone. See
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
 ## License
 
-All Rights Reserved. See the [LICENSE](LICENSE) file — these mods are proprietary.
+The Hungering Portal's own code and assets are All Rights Reserved (see the
+[LICENSE](LICENSE) file). The bundled End-fight data (`data/custom_ender_dragon/` and
+`data/roguecraft/`) is derived from RogueCraft by MonoCode and is licensed under
+**CC-BY-SA-4.0**; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

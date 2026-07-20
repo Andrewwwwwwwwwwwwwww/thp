@@ -5,7 +5,7 @@
   "name": "The Hungering Portal",
   "description": "Gates the End Portal behind a ritual: a built End Portal won't let anyone pass until ten specific offerings are thrown in with enough player witnesses present. Server-side, with cryptic in-game clues; ops can re-lock it with /thp reset.",
   "authors": ["Andrewwwwwwwwwwwwwww"],
-  "license": "All Rights Reserved",
+  "license": "All Rights Reserved (mod); bundled End fight derived from RogueCraft by MonoCode under CC-BY-SA-4.0 - see THIRD_PARTY_NOTICES.md",
   "environment": "*",
   "entrypoints": {
     "main": ["io.github.andrewwwwwwwwwwwwwww.thp.TheHungeringPortal"],

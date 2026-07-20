@@ -1,0 +1,2 @@
+particle minecraft:dust{color:[0.73,0.0,1.0],scale:1.0} ~ ~ ~ 0 0 0 1 1 force
+execute if data entity @s {Age:100} run summon minecraft:creeper ~ ~ ~ {Fuse:0,attributes:[{base:0.001,id:"minecraft:scale"}],Invulnerable:true,CustomName:'"Ender Dragon"'}
