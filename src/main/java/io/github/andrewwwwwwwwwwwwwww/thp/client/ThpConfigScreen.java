@@ -16,7 +16,7 @@ public class ThpConfigScreen extends Screen {
     private EditBox playersField;
 
     public ThpConfigScreen(Screen parent) {
-        super(Component.literal("The Hungering Portal"));
+        super(Component.translatable("thp.config.title"));
         this.parent = parent;
         this.remoteServer = Minecraft.getInstance().getCurrentServer() != null;
     }
@@ -29,10 +29,10 @@ public class ThpConfigScreen extends Screen {
 
         if (remoteServer) {
             addRenderableWidget(new StringWidget(0, 60, this.width, 12,
-                Component.literal("Settings on this server are managed remotely.")
+                Component.translatable("thp.config.remote")
                     .withStyle(ChatFormatting.GRAY), this.font));
             addRenderableWidget(new StringWidget(0, 80, this.width, 12,
-                Component.literal("Use these commands (op required):")
+                Component.translatable("thp.config.commands_hint")
                     .withStyle(ChatFormatting.GRAY), this.font));
             addRenderableWidget(new StringWidget(0, 104, this.width, 12,
                 Component.literal("/thp portalreq")
@@ -42,22 +42,22 @@ public class ThpConfigScreen extends Screen {
                     .withStyle(ChatFormatting.AQUA), this.font));
 
             addRenderableWidget(Button.builder(
-                Component.literal("Back"),
+                Component.translatable("gui.back"),
                 btn -> this.minecraft.setScreenAndShow(parent)
             ).bounds(cx - 50, this.height - 30, 100, 20).build());
             return;
         }
 
         addRenderableWidget(new StringWidget(0, 65, this.width, 12,
-            Component.literal("Players required to activate portal"), this.font));
+            Component.translatable("thp.config.players_label"), this.font));
 
-        this.playersField = new EditBox(this.font, cx - 60, 85, 120, 20, Component.literal("Players"));
+        this.playersField = new EditBox(this.font, cx - 60, 85, 120, 20, Component.translatable("thp.config.players"));
         this.playersField.setMaxLength(3);
         this.playersField.setValue(String.valueOf(PortalActivation.getRequiredPlayersValue()));
         addRenderableWidget(this.playersField);
 
         addRenderableWidget(Button.builder(
-            Component.literal("Save"),
+            Component.translatable("thp.config.save"),
             btn -> {
                 try {
                     int v = Math.max(1, Integer.parseInt(this.playersField.getValue()));
@@ -70,7 +70,7 @@ public class ThpConfigScreen extends Screen {
         ).bounds(cx - 105, this.height - 30, 100, 20).build());
 
         addRenderableWidget(Button.builder(
-            Component.literal("Cancel"),
+            Component.translatable("gui.cancel"),
             btn -> this.minecraft.setScreenAndShow(parent)
         ).bounds(cx + 5, this.height - 30, 100, 20).build());
     }

@@ -7,6 +7,7 @@ import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import io.github.andrewwwwwwwwwwwwwww.thp.text.Lang;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
@@ -33,8 +34,8 @@ public class TheHungeringPortal implements ModInitializer {
                                 int count = IntegerArgumentType.getInteger(ctx, "count");
                                 PortalActivation.setRequiredPlayers(count);
                                 PortalActivation.save(ctx.getSource().getServer());
-                                ctx.getSource().sendSuccess(() -> Component.literal(
-                                    "End Portal player requirement set to " + count), true);
+                                ctx.getSource().sendSuccess(() -> Component.literal(Lang.tr(ctx.getSource().getPlayer(),
+                                    "thp.cmd.count_set", "End Portal player requirement set to %d", count)), true);
                                 return 1;
                             })))
                     .then(Commands.literal("portalreq")
@@ -43,15 +44,16 @@ public class TheHungeringPortal implements ModInitializer {
                                 PortalActivation.showRequirementsChat(player);
                                 return 1;
                             }
-                            ctx.getSource().sendFailure(Component.literal("This command must be run by a player."));
+                            ctx.getSource().sendFailure(Component.literal(Lang.tr(ctx.getSource().getPlayer(),
+                                "thp.cmd.player_only", "This command must be run by a player.")));
                             return 0;
                         }))
                     .then(Commands.literal("reset")
                         .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                         .executes(ctx -> {
                             PortalActivation.reset(ctx.getSource().getServer());
-                            ctx.getSource().sendSuccess(() -> Component.literal(
-                                "The End Portal has been re-locked; the ritual is required again."), true);
+                            ctx.getSource().sendSuccess(() -> Component.literal(Lang.tr(ctx.getSource().getPlayer(),
+                                "thp.cmd.relocked", "The End Portal has been re-locked; the ritual is required again.")), true);
                             return 1;
                         }))
             );

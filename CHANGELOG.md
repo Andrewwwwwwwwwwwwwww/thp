@@ -1,5 +1,9 @@
 # The Hungering Portal Changelog
 
+## [2.1.1] - 2026-07-21
+### Added
+- **Full localization support.** Every player-facing string — the portal ritual titles and chat, the offering list, command feedback, and the Mod Menu config screen — is now translatable. English is the built-in default; drop a `<locale>.json` in the jar or in `<world>/thp/lang/` to translate. See `TRANSLATING.md`.
+
 ## [2.1.0] - 2026-07-20
 
 ### Added

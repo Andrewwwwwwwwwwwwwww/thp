@@ -5,6 +5,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import io.github.andrewwwwwwwwwwwwwww.thp.text.Lang;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.minecraft.ChatFormatting;
@@ -101,6 +102,7 @@ public class PortalActivation {
     }
 
     public static void load(MinecraftServer server) {
+        Lang.setServer(server);
         savePath = server.getWorldPath(LevelResource.ROOT).resolve("endbeast.json");
         activated = false;
         consumed.clear();
@@ -280,15 +282,16 @@ public class PortalActivation {
             ServerPlayer p = level.getServer().getPlayerList().getPlayer(throwerId);
             if (p != null) {
                 int needed = required - participants.size();
-                String witnesses = needed == 1 ? "witness" : "witnesses";
+                String subKey = needed == 1 ? "thp.offerings_made.sub_one" : "thp.offerings_made.sub_many";
+                String chatKey = needed == 1 ? "thp.offerings_made.chat_one" : "thp.offerings_made.chat_many";
                 sendTitle(p,
-                    Component.literal("Offerings made").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD),
-                    Component.literal(needed + " more " + witnesses + " needed").withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC),
+                    styled(Lang.tr(p, "thp.offerings_made.title", "Offerings made"), ChatFormatting.GOLD, ChatFormatting.BOLD),
+                    styled(Lang.tr(p, subKey, needed == 1 ? "%d more witness needed" : "%d more witnesses needed", needed),
+                            ChatFormatting.GRAY, ChatFormatting.ITALIC),
                     10, 80, 20);
-                scheduleChat(p, List.of(
-                    Component.literal("The offerings are made, but " + needed + " more " + witnesses + " needed.")
-                        .withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC)
-                ), 110);
+                scheduleChat(p, List.of(styled(Lang.tr(p, chatKey,
+                        needed == 1 ? "The offerings are made, but %d more witness needed." : "The offerings are made, but %d more witnesses needed.",
+                        needed), ChatFormatting.GRAY, ChatFormatting.ITALIC)), 110);
             }
         }
         save(level.getServer());
@@ -389,12 +392,11 @@ public class PortalActivation {
         setFightArmed(server, false);
         save(server);
 
-        Component title = Component.literal("The End Portal hungers once more")
-            .withStyle(ChatFormatting.DARK_RED, ChatFormatting.BOLD);
-        Component subtitle = Component.literal("The way is sealed")
-            .withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC);
         for (ServerPlayer p : server.getPlayerList().getPlayers()) {
-            sendTitle(p, title, subtitle, 20, 120, 40);
+            sendTitle(p,
+                styled(Lang.tr(p, "thp.reset.title", "The End Portal hungers once more"), ChatFormatting.DARK_RED, ChatFormatting.BOLD),
+                styled(Lang.tr(p, "thp.reset.sub", "The way is sealed"), ChatFormatting.GRAY, ChatFormatting.ITALIC),
+                20, 120, 40);
         }
     }
 
@@ -460,17 +462,15 @@ public class PortalActivation {
             }
         }
 
-        Component title = Component.literal("The portal grew impatient")
-            .withStyle(ChatFormatting.RED, ChatFormatting.BOLD);
-        Component subtitle = Component.literal("Your offerings have been returned")
-            .withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC);
-        Component chatLine = Component.literal("The portal grew impatient and returned your offerings.")
-            .withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC);
         for (UUID uuid : notifiedPlayers) {
             ServerPlayer p = server.getPlayerList().getPlayer(uuid);
             if (p != null) {
-                sendTitle(p, title, subtitle, 10, 80, 20);
-                scheduleChat(p, List.of(chatLine), 110);
+                sendTitle(p,
+                    styled(Lang.tr(p, "thp.return.title", "The portal grew impatient"), ChatFormatting.RED, ChatFormatting.BOLD),
+                    styled(Lang.tr(p, "thp.return.sub", "Your offerings have been returned"), ChatFormatting.GRAY, ChatFormatting.ITALIC),
+                    10, 80, 20);
+                scheduleChat(p, List.of(styled(Lang.tr(p, "thp.return.chat",
+                        "The portal grew impatient and returned your offerings."), ChatFormatting.GRAY, ChatFormatting.ITALIC)), 110);
             }
         }
 
@@ -484,17 +484,15 @@ public class PortalActivation {
     }
 
     private static void broadcastActivation(ServerLevel level) {
-        Component title = Component.literal("The End Portal hungers no more")
-            .withStyle(ChatFormatting.LIGHT_PURPLE, ChatFormatting.BOLD);
-        Component subtitle = Component.literal("The way is open")
-            .withStyle(ChatFormatting.LIGHT_PURPLE);
+        // Per-player so each online player gets the announcement in their own language.
         for (ServerPlayer p : level.getServer().getPlayerList().getPlayers()) {
-            sendTitle(p, title, subtitle, 20, 140, 40);
+            sendTitle(p,
+                styled(Lang.tr(p, "thp.open.title", "The End Portal hungers no more"), ChatFormatting.LIGHT_PURPLE, ChatFormatting.BOLD),
+                styled(Lang.tr(p, "thp.open.sub", "The way is open"), ChatFormatting.LIGHT_PURPLE),
+                20, 140, 40);
+            scheduleChat(p, List.of(styled(Lang.tr(p, "thp.open.chat",
+                    "The End Portal hungers no more. The way is open."), ChatFormatting.LIGHT_PURPLE, ChatFormatting.BOLD)), 200);
         }
-        scheduleBroadcastChat(level, List.of(
-            Component.literal("The End Portal hungers no more. The way is open.")
-                .withStyle(ChatFormatting.LIGHT_PURPLE, ChatFormatting.BOLD)
-        ), 200);
     }
 
     public static void repelPlayer(ServerPlayer player, BlockPos portalPos) {
@@ -520,45 +518,52 @@ public class PortalActivation {
         }
     }
 
-    private static final Component REQ_HEADING =
-        Component.literal("Collect these items few").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD);
+    // The ten offerings, in ritual order. Flavor/name text is translatable per key; colours are fixed.
+    private static final String[] REQ_IDS = {
+        "trident", "netherite_block", "sniffer_egg", "enchanted_golden_apple", "totem_of_undying",
+        "beacon", "mace", "wither_rose", "conduit", "zombie_head"};
+    private static final ChatFormatting[] REQ_COLORS = {
+        ChatFormatting.AQUA, ChatFormatting.DARK_PURPLE, ChatFormatting.GREEN, ChatFormatting.YELLOW,
+        ChatFormatting.WHITE, ChatFormatting.GOLD, ChatFormatting.GRAY, ChatFormatting.DARK_GRAY,
+        ChatFormatting.DARK_AQUA, ChatFormatting.DARK_GREEN};
+    private static final String[] REQ_FLAVOR_EN = {
+        "A Trident from the bubbling undead", "A block of Nether & Gold forged steel",
+        "An egg of a beast long past", "An Apple glistening with power", "A hand held savior",
+        "A Nether Star's gilded prison", "A mace of crushing weight",
+        "Sixteen roses grown from the Wither's wake", "A ward of the drowned deep",
+        "and finally a skull from the restless dead"};
+    private static final String[] REQ_NAME_EN = {
+        "Trident", "Netherite Block", "Sniffer Egg", "Enchanted Golden Apple", "Totem of Undying",
+        "Beacon", "Mace", "16 Wither Roses", "Conduit", "Zombie Head"};
 
-    private static Component[] requirementFlavor() {
-        return new Component[] {
-            Component.literal("A Trident from the bubbling undead").withStyle(ChatFormatting.AQUA),
-            Component.literal("A block of Nether & Gold forged steel").withStyle(ChatFormatting.DARK_PURPLE),
-            Component.literal("An egg of a beast long past").withStyle(ChatFormatting.GREEN),
-            Component.literal("An Apple glistening with power").withStyle(ChatFormatting.YELLOW),
-            Component.literal("A hand held savior").withStyle(ChatFormatting.WHITE),
-            Component.literal("A Nether Star's gilded prison").withStyle(ChatFormatting.GOLD),
-            Component.literal("A mace of crushing weight").withStyle(ChatFormatting.GRAY),
-            Component.literal("Sixteen roses grown from the Wither's wake").withStyle(ChatFormatting.DARK_GRAY),
-            Component.literal("A ward of the drowned deep").withStyle(ChatFormatting.DARK_AQUA),
-            Component.literal("and finally a skull from the restless dead").withStyle(ChatFormatting.DARK_GREEN)
-        };
+    private static Component styled(String text, ChatFormatting... styles) {
+        return Component.literal(text).withStyle(styles);
     }
 
-    private static String[] requirementNames() {
-        return new String[] {
-            "Trident", "Netherite Block", "Sniffer Egg", "Enchanted Golden Apple",
-            "Totem of Undying", "Beacon", "Mace", "16 Wither Roses",
-            "Conduit", "Zombie Head"
-        };
+    private static Component[] requirementFlavor(ServerPlayer p) {
+        Component[] out = new Component[REQ_IDS.length];
+        for (int i = 0; i < REQ_IDS.length; i++) {
+            out[i] = styled(Lang.tr(p, "thp.req.flavor." + REQ_IDS[i], REQ_FLAVOR_EN[i]), REQ_COLORS[i]);
+        }
+        return out;
     }
 
-    private static List<Component> requirementChatLines() {
-        Component[] items = requirementFlavor();
-        String[] itemNames = requirementNames();
+    private static String requirementName(ServerPlayer p, int i) {
+        return Lang.tr(p, "thp.req.name." + REQ_IDS[i], REQ_NAME_EN[i]);
+    }
+
+    private static List<Component> requirementChatLines(ServerPlayer p) {
+        Component[] items = requirementFlavor(p);
         List<Component> chatLines = new ArrayList<>();
-        chatLines.add(REQ_HEADING);
+        chatLines.add(styled(Lang.tr(p, "thp.req.heading", "Collect these items few"), ChatFormatting.GOLD, ChatFormatting.BOLD));
         for (int i = 0; i < items.length; i++) {
             chatLines.add(Component.literal("  ").append(items[i])
-                .append(Component.literal(" (" + itemNames[i] + ")").withStyle(ChatFormatting.WHITE)));
+                .append(styled(" (" + requirementName(p, i) + ")", ChatFormatting.WHITE)));
         }
         int required = getRequiredPlayers();
-        String witnesses = required == 1 ? "witness" : "witnesses";
-        chatLines.add(Component.literal(required + " " + witnesses + " required to activate the portal")
-            .withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC));
+        chatLines.add(styled(Lang.tr(p, required == 1 ? "thp.req.witnesses_one" : "thp.req.witnesses_many",
+                required == 1 ? "%d witness required to activate the portal" : "%d witnesses required to activate the portal",
+                required), ChatFormatting.GRAY, ChatFormatting.ITALIC));
         return chatLines;
     }
 
@@ -566,7 +571,7 @@ public class PortalActivation {
     public static void showRequirementsChat(ServerPlayer player) {
         UUID uuid = player.getUUID();
         pendingChats.removeIf(pc -> !pc.broadcast() && pc.playerId().equals(uuid));
-        for (Component line : requirementChatLines()) {
+        for (Component line : requirementChatLines(player)) {
             player.sendSystemMessage(line);
         }
     }
@@ -577,18 +582,19 @@ public class PortalActivation {
         pendingTitles.removeIf(pt -> pt.playerId().equals(uuid));
         pendingChats.removeIf(pc -> !pc.broadcast() && pc.playerId().equals(uuid));
 
-        Component[] items = requirementFlavor();
+        Component[] items = requirementFlavor(player);
         int t = 0;
-        scheduleTitle(player, REQ_HEADING, Component.empty(), 5, 40, 10, t);
+        scheduleTitle(player, styled(Lang.tr(player, "thp.req.heading", "Collect these items few"),
+                ChatFormatting.GOLD, ChatFormatting.BOLD), Component.empty(), 5, 40, 10, t);
         t += 50;
         int total = items.length;
         for (int i = 0; i < items.length; i++) {
-            Component offeringTitle = Component.literal("Offering " + (i + 1) + " of " + total)
-                .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD);
+            Component offeringTitle = styled(Lang.tr(player, "thp.req.offering", "Offering %d of %d", i + 1, total),
+                    ChatFormatting.GOLD, ChatFormatting.BOLD);
             scheduleTitle(player, offeringTitle, items[i], 5, 30, 5, t);
             t += 35;
         }
-        scheduleChat(player, requirementChatLines(), t);
+        scheduleChat(player, requirementChatLines(player), t);
     }
 
     private static void sendTitle(ServerPlayer player, Component title, Component subtitle, int fadeIn, int stay, int fadeOut) {
