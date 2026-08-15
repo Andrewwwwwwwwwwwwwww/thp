@@ -1,0 +1,33 @@
+{
+  "parent": "thp:root",
+  "display": {
+    "icon": {
+      "id": "minecraft:mace"
+    },
+    "title": {
+      "translate": "thp.advancement.mace.title",
+      "fallback": "Mace"
+    },
+    "description": {
+      "translate": "thp.advancement.mace.description",
+      "fallback": "A mace of crushing weight. A heavy core from an ominous trial vault, plus a breeze rod."
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "criteria": {
+    "obtained": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "minecraft:mace"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

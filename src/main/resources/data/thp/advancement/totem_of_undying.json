@@ -1,0 +1,33 @@
+{
+  "parent": "thp:root",
+  "display": {
+    "icon": {
+      "id": "minecraft:totem_of_undying"
+    },
+    "title": {
+      "translate": "thp.advancement.totem_of_undying.title",
+      "fallback": "Totem of Undying"
+    },
+    "description": {
+      "translate": "thp.advancement.totem_of_undying.description",
+      "fallback": "A hand held savior. Kill an evoker. Raids are the reliable way."
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "criteria": {
+    "obtained": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "minecraft:totem_of_undying"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

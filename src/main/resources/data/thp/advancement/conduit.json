@@ -1,0 +1,33 @@
+{
+  "parent": "thp:root",
+  "display": {
+    "icon": {
+      "id": "minecraft:conduit"
+    },
+    "title": {
+      "translate": "thp.advancement.conduit.title",
+      "fallback": "Conduit"
+    },
+    "description": {
+      "translate": "thp.advancement.conduit.description",
+      "fallback": "A ward of the drowned deep. A heart of the sea and eight nautilus shells."
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "criteria": {
+    "obtained": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "minecraft:conduit"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

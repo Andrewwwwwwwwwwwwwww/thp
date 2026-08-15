@@ -1,0 +1,33 @@
+{
+  "parent": "thp:root",
+  "display": {
+    "icon": {
+      "id": "minecraft:enchanted_golden_apple"
+    },
+    "title": {
+      "translate": "thp.advancement.enchanted_golden_apple.title",
+      "fallback": "Enchanted Golden Apple"
+    },
+    "description": {
+      "translate": "thp.advancement.enchanted_golden_apple.description",
+      "fallback": "An Apple glistening with power. Bastions, dungeons, mineshafts. Or a Desert Crate, if you fish."
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "criteria": {
+    "obtained": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "minecraft:enchanted_golden_apple"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

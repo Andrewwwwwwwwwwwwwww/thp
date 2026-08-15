@@ -1,0 +1,33 @@
+{
+  "parent": "thp:root",
+  "display": {
+    "icon": {
+      "id": "minecraft:beacon"
+    },
+    "title": {
+      "translate": "thp.advancement.beacon.title",
+      "fallback": "Beacon"
+    },
+    "description": {
+      "translate": "thp.advancement.beacon.description",
+      "fallback": "A Nether Star's gilded prison. A nether star means killing the Wither."
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "criteria": {
+    "obtained": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "minecraft:beacon"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "parent": "thp:root",
+  "display": {
+    "icon": {
+      "id": "minecraft:zombie_head"
+    },
+    "title": {
+      "translate": "thp.advancement.zombie_head.title",
+      "fallback": "Zombie Head"
+    },
+    "description": {
+      "translate": "thp.advancement.zombie_head.description",
+      "fallback": "and finally a skull from the restless dead. A charged creeper has to do the killing."
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "criteria": {
+    "obtained": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "minecraft:zombie_head"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

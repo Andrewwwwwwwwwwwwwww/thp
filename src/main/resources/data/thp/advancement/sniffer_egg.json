@@ -1,0 +1,33 @@
+{
+  "parent": "thp:root",
+  "display": {
+    "icon": {
+      "id": "minecraft:sniffer_egg"
+    },
+    "title": {
+      "translate": "thp.advancement.sniffer_egg.title",
+      "fallback": "Sniffer Egg"
+    },
+    "description": {
+      "translate": "thp.advancement.sniffer_egg.description",
+      "fallback": "An egg of a beast long past. Brush suspicious sand in a warm ocean ruin."
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "criteria": {
+    "obtained": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "minecraft:sniffer_egg"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

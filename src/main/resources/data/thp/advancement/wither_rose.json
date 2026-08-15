@@ -1,0 +1,36 @@
+{
+  "parent": "thp:root",
+  "display": {
+    "icon": {
+      "id": "minecraft:wither_rose"
+    },
+    "title": {
+      "translate": "thp.advancement.wither_rose.title",
+      "fallback": "16 Wither Roses"
+    },
+    "description": {
+      "translate": "thp.advancement.wither_rose.description",
+      "fallback": "Sixteen roses grown from the Wither's wake. Let a Wither kill sixteen mobs, and pick what grows."
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "criteria": {
+    "obtained": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "minecraft:wither_rose"
+            ],
+            "count": {
+              "min": 16
+            }
+          }
+        ]
+      }
+    }
+  }
+}

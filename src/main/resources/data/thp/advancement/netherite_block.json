@@ -1,0 +1,33 @@
+{
+  "parent": "thp:root",
+  "display": {
+    "icon": {
+      "id": "minecraft:netherite_block"
+    },
+    "title": {
+      "translate": "thp.advancement.netherite_block.title",
+      "fallback": "Netherite Block"
+    },
+    "description": {
+      "translate": "thp.advancement.netherite_block.description",
+      "fallback": "A block of Nether & Gold forged steel. Nine netherite ingots. Thirty-six ancient debris."
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "criteria": {
+    "obtained": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "minecraft:netherite_block"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

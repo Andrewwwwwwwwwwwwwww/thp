@@ -1,0 +1,33 @@
+{
+  "parent": "thp:root",
+  "display": {
+    "icon": {
+      "id": "minecraft:trident"
+    },
+    "title": {
+      "translate": "thp.advancement.trident.title",
+      "fallback": "Trident"
+    },
+    "description": {
+      "translate": "thp.advancement.trident.description",
+      "fallback": "A Trident from the bubbling undead. Drowned carry them, rarely. Looting helps."
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "criteria": {
+    "obtained": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "minecraft:trident"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

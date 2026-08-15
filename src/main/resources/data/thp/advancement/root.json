@@ -1,0 +1,23 @@
+{
+  "display": {
+    "icon": {
+      "id": "minecraft:end_portal_frame"
+    },
+    "title": {
+      "translate": "thp.advancement.root.title",
+      "fallback": "The Hungering Portal"
+    },
+    "description": {
+      "translate": "thp.advancement.root.description",
+      "fallback": "The End portal is sealed. Ten offerings will open it."
+    },
+    "background": "minecraft:block/purpur_block",
+    "show_toast": false,
+    "announce_to_chat": false
+  },
+  "criteria": {
+    "joined": {
+      "trigger": "minecraft:tick"
+    }
+  }
+}
