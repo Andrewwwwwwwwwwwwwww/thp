@@ -1,5 +1,14 @@
 # The Hungering Portal Changelog
 
+## [2.2.0] - 2026-08-15
+### Added
+- **An advancement tree for the portal ritual.** A new tab, on a purpur background, showing every offering the portal demands. The root unlocks the moment you join, so the whole checklist is visible from the start rather than appearing only once you stumble onto your first offering.
+- One advancement per offering, all ten of them: the Trident, Netherite Block, Sniffer Egg, Enchanted Golden Apple, Totem of Undying, Beacon, Mace, 16 Wither Roses, Conduit and Zombie Head. Each carries its ritual flavour text plus a hint about where to actually find the thing.
+- The four that gate on a boss or a rare structure — Netherite Block, Beacon, Mace and the 16 Wither Roses — are **challenge** advancements; the rest are goals.
+- **VanillaSkills players earn Skill Shards for these.** VanillaSkills 2.0 counts the `thp` namespace when awarding shards per advancement, so finishing the tab is worth 110 Skill Shards at its default rates. THP remains completely standalone — without VanillaSkills installed these are simply advancements.
+- Traditional Chinese (zh_tw) translations for all 22 new strings, keeping both languages complete at 68 keys.
+
+
 ## [2.1.1] - 2026-07-21
 ### Added
 - **Full localization support.** Every player-facing string — the portal ritual titles and chat, the offering list, command feedback, and the Mod Menu config screen — is now translatable. English is the built-in default; drop a `<locale>.json` in the jar or in `<world>/thp/lang/` to translate. See `TRANSLATING.md`.
