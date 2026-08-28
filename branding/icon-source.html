@@ -12,14 +12,13 @@ canvas{image-rendering:pixelated;margin:8px}
   const SIZES = [512, 400, 128];
 
   // --- tunables (authored at 512) ---
-  const BLOCK_S   = 9;     // pixels per 1/16 block
-  const BLOCK_CY  = 222;   // vertical anchor of the block's projection origin
-  const TEXT_TOP  = 398;
+  const BLOCK_S   = 8;     // pixels per 1/16 block
+  const BLOCK_CY  = 190;   // vertical anchor of the block's projection origin
+  const TEXT_TOP  = 348;
   const TEXT_MAXW = 440;
-  const LINES     = ['The Hungering Portal'];
+  const LINES     = ['The Hungering', 'Portal'];
 
-  const BG_IN  = '#6a3aa0';
-  const BG_OUT = '#2a1240';
+  const BG     = '#4a2a7a';
   const TEXT   = '#f0e6ff';
   const SHADOW = '#2a1240';
 
@@ -58,11 +57,7 @@ canvas{image-rendering:pixelated;margin:8px}
     const ctx = c.getContext('2d');
     ctx.imageSmoothingEnabled = false;
 
-    // Purple ground, brighter behind the block so it reads as lit.
-    const g = ctx.createRadialGradient(SZ / 2, BLOCK_CY * k, 0, SZ / 2, BLOCK_CY * k, SZ * 0.72);
-    g.addColorStop(0, BG_IN);
-    g.addColorStop(1, BG_OUT);
-    ctx.fillStyle = g;
+    ctx.fillStyle = BG;
     ctx.fillRect(0, 0, SZ, SZ);
 
     drawBlock(ctx, SZ / 2, BLOCK_CY * k, BLOCK_S * k);
