@@ -1,0 +1,179 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>THP icon</title>
+<style>body{background:#222;color:#ddd;font-family:sans-serif;margin:16px}
+canvas{image-rendering:pixelated;margin:8px}
+.row{display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap}</style>
+</head>
+<body>
+<div class="row" id="out"></div>
+<script>
+(() => {
+  const SIZES = [512, 400, 128];
+
+  // --- tunables (authored at 512) ---
+  const BLOCK_S   = 9;     // pixels per 1/16 block
+  const BLOCK_CY  = 222;   // vertical anchor of the block's projection origin
+  const TEXT_TOP  = 398;
+  const TEXT_MAXW = 440;
+  const LINES     = ['The Hungering Portal'];
+
+  const BG_IN  = '#6a3aa0';
+  const BG_OUT = '#2a1240';
+  const TEXT   = '#f0e6ff';
+  const SHADOW = '#2a1240';
+
+  const tex = {};
+  const names = {
+    top:  'mc-end_portal_frame_top.png',
+    side: 'mc-end_portal_frame_side.png',
+    eye:  'mc-end_portal_frame_eye.png',
+    font: 'mc-ascii.png',
+  };
+  let pending = Object.keys(names).length;
+  for (const [k, src] of Object.entries(names)) {
+    const im = new Image();
+    im.onload = () => { if (--pending === 0) go(); };
+    im.src = src;
+    tex[k] = im;
+  }
+
+  function go() {
+    const out = document.getElementById('out');
+    const cs = {};
+    for (const S of SIZES) {
+      const c = document.createElement('canvas');
+      c.width = c.height = S;
+      draw(c);
+      const wrap = document.createElement('div');
+      const lbl = document.createElement('div'); lbl.textContent = S + 'px';
+      wrap.appendChild(c); wrap.appendChild(lbl); out.appendChild(wrap);
+      cs[S] = c;
+    }
+    save(cs);
+  }
+
+  function draw(c) {
+    const SZ = c.width, k = SZ / 512;
+    const ctx = c.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+
+    // Purple ground, brighter behind the block so it reads as lit.
+    const g = ctx.createRadialGradient(SZ / 2, BLOCK_CY * k, 0, SZ / 2, BLOCK_CY * k, SZ * 0.72);
+    g.addColorStop(0, BG_IN);
+    g.addColorStop(1, BG_OUT);
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, SZ, SZ);
+
+    drawBlock(ctx, SZ / 2, BLOCK_CY * k, BLOCK_S * k);
+    drawText(ctx, SZ, k);
+  }
+
+  /* Isometric end portal frame with the eye set, straight off the vanilla model:
+     frame [0,0,0]-[16,13,16], eye [4,13,4]-[12,16,12]. */
+  function drawBlock(ctx, cx, cy, S) {
+    const P = (x, y, z) => ({
+      x: cx + (x - z) * 0.866 * S,
+      y: cy + (x + z) * 0.5 * S - y * S,
+    });
+
+    const F = (img, uv, O, U, V, bright) => {
+      const [sx, sy, w, h] = uv;
+      const off = document.createElement('canvas');
+      off.width = w; off.height = h;
+      const o = off.getContext('2d');
+      o.imageSmoothingEnabled = false;
+      o.drawImage(img, sx, sy, w, h, 0, 0, w, h);
+      if (bright < 1) {
+        o.globalCompositeOperation = 'source-atop';
+        o.fillStyle = `rgba(8,4,18,${1 - bright})`;
+        o.fillRect(0, 0, w, h);
+      }
+      ctx.setTransform((U.x - O.x) / w, (U.y - O.y) / w, (V.x - O.x) / h, (V.y - O.y) / h, O.x, O.y);
+      ctx.drawImage(off, 0, 0);
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+    };
+
+    // frame top (y=13)
+    F(tex.top, [0, 0, 16, 16], P(0, 13, 0), P(16, 13, 0), P(0, 13, 16), 1.0);
+    // frame left face (z=16) and right face (x=16); sides use uv [0,3,16,16]
+    F(tex.side, [0, 3, 16, 13], P(0, 13, 16), P(16, 13, 16), P(0, 0, 16), 0.80);
+    F(tex.side, [0, 3, 16, 13], P(16, 13, 16), P(16, 13, 0), P(16, 0, 16), 0.62);
+    // A faint glow under the eye so it reads as an eye rather than a dark socket.
+    const eye = P(8, 16, 8);
+    const halo = ctx.createRadialGradient(eye.x, eye.y, 0, eye.x, eye.y, S * 5.5);
+    halo.addColorStop(0, 'rgba(126,230,183,0.40)');
+    halo.addColorStop(0.5, 'rgba(126,230,183,0.14)');
+    halo.addColorStop(1, 'rgba(126,230,183,0)');
+    ctx.fillStyle = halo;
+    ctx.fillRect(eye.x - S * 6, eye.y - S * 6, S * 12, S * 12);
+
+    // eye nub
+    F(tex.eye, [4, 4, 8, 8], P(4, 16, 4), P(12, 16, 4), P(4, 16, 12), 1.0);
+    F(tex.eye, [4, 0, 8, 3], P(4, 16, 12), P(12, 16, 12), P(4, 13, 12), 0.80);
+    F(tex.eye, [4, 0, 8, 3], P(12, 16, 12), P(12, 16, 4), P(12, 13, 12), 0.62);
+  }
+
+  function drawText(ctx, SZ, k) {
+    const meas = document.createElement('canvas');
+    meas.width = meas.height = 128;
+    const m = meas.getContext('2d');
+    m.drawImage(tex.font, 0, 0);
+    const widths = {};
+    const all = LINES.join('');
+    for (const ch of new Set(all.split(''))) {
+      if (ch === ' ') { widths[ch] = 4; continue; }
+      const code = ch.charCodeAt(0);
+      const d = m.getImageData((code % 16) * 8, Math.floor(code / 16) * 8, 8, 8).data;
+      let w = 0;
+      for (let x = 0; x < 8; x++) for (let y = 0; y < 8; y++) {
+        if (d[(y * 8 + x) * 4 + 3] > 0) { w = x + 1; break; }
+      }
+      widths[ch] = (w || 4) + 1;
+    }
+    const adv = s => s.split('').reduce((a, ch) => a + widths[ch], 0) - 1;
+    const widest = Math.max(...LINES.map(adv));
+    const scale = Math.max(1, Math.floor((TEXT_MAXW * k) / widest));
+
+    LINES.forEach((line, i) => {
+      const topY = (TEXT_TOP * k) + i * 10 * scale;
+      let pen = Math.round(SZ / 2 - (adv(line) * scale) / 2);
+      for (const ch of line.split('')) {
+        if (ch !== ' ') {
+          const code = ch.charCodeAt(0);
+          const glyph = col => {
+            const gc = document.createElement('canvas');
+            gc.width = gc.height = 8;
+            const g2 = gc.getContext('2d');
+            g2.imageSmoothingEnabled = false;
+            g2.drawImage(tex.font, (code % 16) * 8, Math.floor(code / 16) * 8, 8, 8, 0, 0, 8, 8);
+            g2.globalCompositeOperation = 'source-in';
+            g2.fillStyle = col;
+            g2.fillRect(0, 0, 8, 8);
+            return gc;
+          };
+          ctx.drawImage(glyph(SHADOW), pen + scale, topY + scale, 8 * scale, 8 * scale);
+          ctx.drawImage(glyph(TEXT), pen, topY, 8 * scale, 8 * scale);
+        }
+        pen += widths[ch] * scale;
+      }
+    });
+  }
+
+  function post(name, canvas) {
+    return fetch('http://localhost:7701/', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, data: canvas.toDataURL('image/png').split(',')[1] })
+    });
+  }
+  function save(cs) {
+    post('icon-thp-512', cs[512])
+      .then(() => post('icon-thp-400', cs[400]))
+      .then(() => post('icon-thp-128', cs[128]))
+      .then(() => { document.title = 'THP-SAVED'; })
+      .catch(() => { document.title = 'THP-SAVE-FAILED'; });
+  }
+})();
+</script>
+</body>
+</html>
