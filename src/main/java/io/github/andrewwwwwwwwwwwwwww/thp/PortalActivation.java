@@ -448,7 +448,7 @@ public class PortalActivation {
                 ItemStack stack = new ItemStack(item, n);
                 if (player != null) {
                     if (!player.getInventory().add(stack)) {
-                        player.drop(stack, false);
+                        player.drop(stack, false, net.minecraft.util.Prediction.SERVER_ONLY);
                     }
                     notifiedPlayers.add(throwerId);
                 } else if (lastPortalPos != null) {
@@ -508,7 +508,7 @@ public class PortalActivation {
             dz /= mag;
         }
         player.setDeltaMovement(dx * 1.2, 0.8, dz * 1.2);
-        player.hurtMarked = true;
+        player.connection.send(new net.minecraft.network.protocol.game.ClientboundSetEntityMotionPacket(player));
 
         long now = player.level().getGameTime();
         Long last = lastMessageTick.get(player.getUUID());
