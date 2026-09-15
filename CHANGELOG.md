@@ -1,5 +1,12 @@
 # The Hungering Portal Changelog
 
+## [2.3.0] - 2026-09-15
+### Added
+- **A Minecraft 26.3 build.** Built against Fabric Loader 0.19.5 and Fabric API 0.160.5+26.3 (up from 0.19.3 and 0.152.1+26.2). The 26.2 and 26.1.2 builds carry on alongside it.
+
+### Changed
+- Item drops and velocity pushes in the dragon fight use the 26.3 API on that build; behaviour is unchanged.
+
 ## [2.2.0] - 2026-08-15
 ### Added
 - **An advancement tree for the portal ritual.** A new tab, on a purpur background, showing every offering the portal demands. The root unlocks the moment you join, so the whole checklist is visible from the start rather than appearing only once you stumble onto your first offering.
