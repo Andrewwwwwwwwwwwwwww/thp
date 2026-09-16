@@ -7,6 +7,9 @@
 ### Changed
 - Item drops and velocity pushes in the dragon fight use the 26.3 API on that build; behaviour is unchanged.
 
+### Fixed
+- **The 26.3 build could not start a server.** Two of the End fight's loot tables gave their roll count as a bare range, which 26.3 no longer reads unless the range says it is uniform. They say so now; the 26.2 and 26.1.2 builds read either form.
+
 ## [2.2.0] - 2026-08-15
 ### Added
 - **An advancement tree for the portal ritual.** A new tab, on a purpur background, showing every offering the portal demands. The root unlocks the moment you join, so the whole checklist is visible from the start rather than appearing only once you stumble onto your first offering.
